@@ -41,8 +41,9 @@ def test_forward_scaling_matches_upstream(n_samples, n_components):
     assert actual[2] == pytest.approx(expected[2], abs=2e-13)
 
 
-def test_backward_log_matches_upstream():
-    start, trans, frames = model(83, 8)
+@pytest.mark.parametrize("n_components", [4, 8])
+def test_backward_log_matches_upstream(n_components):
+    start, trans, frames = model(83, n_components)
     log_frames = np.log(frames)
     assert _hmmc.backward_log(start, trans, log_frames) == pytest.approx(
         upstream.backward_log(start, trans, log_frames), abs=2e-8

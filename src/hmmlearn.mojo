@@ -32,6 +32,21 @@ def logsum_transition(
 ) -> Float64:
     var transition = log_transmat + state * n_components
     var maximum = -infinity()
+    if n_components == 4:
+        var value0 = previous[0] + transition[0]
+        var value1 = previous[1] + transition[1]
+        var value2 = previous[2] + transition[2]
+        var value3 = previous[3] + transition[3]
+        maximum = max(max(value0, value1), max(value2, value3))
+        if maximum == -infinity() or maximum == infinity():
+            return maximum
+        var total = (
+            exp(value0 - maximum)
+            + exp(value1 - maximum)
+            + exp(value2 - maximum)
+            + exp(value3 - maximum)
+        )
+        return maximum + log(total)
     var vector_end = n_components - n_components % W
     for source in range(0, vector_end, W):
         var chunk_max = (
@@ -279,6 +294,23 @@ def mhl_backward_log(
         for state in range(n_components):
             var transition = log_transmat + state * n_components
             var maximum = -infinity()
+            if n_components == 4:
+                var value0 = transition[0] + next_frame[0] + next_bwd[0]
+                var value1 = transition[1] + next_frame[1] + next_bwd[1]
+                var value2 = transition[2] + next_frame[2] + next_bwd[2]
+                var value3 = transition[3] + next_frame[3] + next_bwd[3]
+                maximum = max(max(value0, value1), max(value2, value3))
+                if maximum == -infinity() or maximum == infinity():
+                    bwd[t * n_components + state] = maximum
+                    continue
+                var total = (
+                    exp(value0 - maximum)
+                    + exp(value1 - maximum)
+                    + exp(value2 - maximum)
+                    + exp(value3 - maximum)
+                )
+                bwd[t * n_components + state] = maximum + log(total)
+                continue
             var vector_end = n_components - n_components % W
             for target in range(0, vector_end, W):
                 var chunk_max = (
